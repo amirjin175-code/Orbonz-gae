@@ -755,10 +755,12 @@ function showLoading(){
   log.appendChild(d); log.scrollTop = log.scrollHeight;
 }
 function hideLoading(){ const el = document.getElementById('loadingLine'); if(el) el.remove(); }
-function showError(onRetry){
+function showError(onRetry, detail){
   const log = document.getElementById('log');
-  const d = document.createElement('div'); d.className='error-line';
-  d.innerHTML = 'خطایی در ارتباط با شبیه‌سازی پیش آمد. اتصال را بررسی کن و دوباره تلاش کن.<br>';
+  const d = document.createElement('div');
+  d.className = 'error-line';
+  d.innerHTML = 'خطایی در ارتباط با شبیه‌سازی پیش آمد.' +
+    (detail ? `<br><span style="font-family:'IBM Plex Mono',monospace; font-size:10px; word-break:break-word;">جزئیات: ${detail}</span>` : '') + '<br>';
   const btn = document.createElement('button'); btn.className='retry-btn'; btn.textContent='تلاش دوباره'; btn.onclick = onRetry;
   d.appendChild(btn); log.appendChild(d); log.scrollTop = log.scrollHeight;
 }
@@ -779,7 +781,7 @@ async function submitTurn(userText, isOpening){
     await saveGame();
   }catch(e){
     hideLoading();
-    showError(() => submitTurn(userText, isOpening));
+    showError(() => submitTurn(userText, isOpening), (e && e.message) ? e.message : String(e));
   }finally{
     busy = false;
     document.getElementById('sendBtn').disabled = false;
@@ -834,4 +836,4 @@ async function init(){
 init();
 </script>
 </body>
-                                                              </html>
+      </html>
