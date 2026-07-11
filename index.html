@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عصر برنز: آینده‌ی گمشده</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Vazirmatn:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#16130f; --bg-panel:#1f1a14; --bg-panel-raised:#241f18;
+    --ink-bone:#e6dcc3; --ink-muted:#a3947a; --ink-faint:#6b6152;
+    --accent-verdigris:#5b8c7b; --accent-verdigris-dim:#3f6357;
+    --accent-amber:#c98a3f; --accent-rose:#b06b7a; --accent-sky:#7d94b8; --accent-gold:#d4af6a;
+    --border-line:#3a3227; --danger:#a85c4a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    background: radial-gradient(ellipse at 50% -10%, #2a2119 0%, var(--bg-void) 55%);
+    color:var(--ink-bone); font-family:'Vazirmatn', sans-serif;
+    min-height:100vh; display:flex; flex-direction:column;
+    -webkit-tap-highlight-color:transparent; overflow-x:hidden;
+  }
+  .app{ max-width:560px; margin:0 auto; width:100%; min-height:100vh; display:flex; flex-direction:column; position:relative; }
+
+  header{ padding:10px 12px; border-bottom:1px solid var(--border-line); background:linear-gradient(180deg, var(--bg-panel-raised), var(--bg-panel)); position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:10px; }
+  .menu-btn{ background:var(--bg-void); border:1px solid var(--border-line); color:var(--accent-amber); width:34px; height:34px; border-radius:3px; font-size:16px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; }
+  .menu-btn:active{ background:var(--accent-verdigris-dim); }
+  .title{ font-family:'Cinzel', serif; font-weight:700; font-size:13px; letter-spacing:1.2px; color:var(--accent-amber); text-transform:uppercase; flex:1; text-align:center; }
+  .header-mini{ font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--ink-faint); text-align:left; min-width:60px; }
+
+  .overlay{ position:fixed; inset:0; background:rgba(10,8,6,0.55); opacity:0; pointer-events:none; transition:opacity 0.25s; z-index:30; }
+  .overlay.open{ opacity:1; pointer-events:auto; }
+  .drawer{ position:fixed; top:0; bottom:0; left:0; width:290px; max-width:84vw; background:var(--bg-panel); border-right:1px solid var(--border-line); box-shadow:4px 0 20px rgba(0,0,0,0.4); transform:translateX(-100%); transition:transform 0.28s cubic-bezier(.4,0,.2,1); z-index:31; overflow-y:auto; padding:16px 14px 30px; }
+  .drawer.open{ transform:translateX(0); }
+  .drawer-title{ font-family:'Cinzel', serif; font-size:12px; letter-spacing:1.5px; color:var(--accent-amber); text-transform:uppercase; margin:18px 0 10px; padding-bottom:6px; border-bottom:1px solid var(--border-line); }
+  .drawer-title:first-child{ margin-top:2px; }
+  .bar-row{ margin-bottom:12px; }
+  .bar-label-row{ display:flex; justify-content:space-between; font-family:'IBM Plex Mono', monospace; font-size:10.5px; color:var(--ink-muted); margin-bottom:4px; }
+  .bar-track{ height:8px; background:var(--bg-void); border:1px solid var(--border-line); border-radius:2px; overflow:hidden; }
+  .bar-fill{ height:100%; transition:width 0.4s ease; }
+  .bar-fill.health{ background:var(--accent-verdigris); }
+  .bar-fill.hunger{ background:var(--accent-amber); }
+  .bar-fill.energy{ background:var(--accent-sky); }
+  .bar-fill.relationship{ background:var(--accent-rose); }
+  .bar-fill.food{ background:#8a9a4e; }
+  .bar-fill.warn{ background:var(--danger); }
+
+  .meta-line{ display:flex; justify-content:space-between; font-size:12px; color:var(--ink-bone); padding:5px 0; border-bottom:1px dashed var(--border-line); }
+  .meta-line span:first-child{ color:var(--ink-faint); font-family:'IBM Plex Mono', monospace; font-size:10.5px; }
+
+  .inv-list{ list-style:none; margin:0; padding:0; }
+  .inv-list li{ font-size:12.5px; color:var(--ink-bone); padding:6px 0; border-bottom:1px dashed var(--border-line); }
+  .inv-empty{ color:var(--ink-faint); font-size:12px; }
+
+  .npc-card{ margin-bottom:14px; padding-bottom:10px; border-bottom:1px dashed var(--border-line); }
+  .npc-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; }
+  .npc-name{ font-size:12.5px; color:var(--accent-amber); }
+  .npc-role{ font-size:10px; color:var(--ink-faint); font-family:'IBM Plex Mono', monospace; }
+  .npc-note{ font-size:11px; color:var(--ink-muted); line-height:1.6; margin-top:4px; }
+
+  .event-item{ font-size:11.5px; color:var(--ink-muted); padding:5px 0; border-bottom:1px dashed var(--border-line); line-height:1.6; }
+  .event-day{ color:var(--ink-faint); font-family:'IBM Plex Mono', monospace; font-size:10px; }
+
+  .mem-item{ padding:6px 0; border-bottom:1px dashed var(--border-line); }
+  .mem-dots{ font-size:9px; color:var(--accent-amber); letter-spacing:1px; }
+  .mem-text{ font-size:11.5px; color:var(--ink-bone); line-height:1.6; margin-top:2px; }
+
+  .price-row{ display:flex; justify-content:space-between; font-size:11.5px; color:var(--ink-muted); padding:4px 0; border-bottom:1px dashed var(--border-line); }
+  .price-row span:last-child{ color:var(--accent-gold); font-family:'IBM Plex Mono', monospace; }
+
+  .drawer-btn{ width:100%; background:var(--bg-void); border:1px solid var(--border-line); color:var(--ink-bone); padding:9px; border-radius:3px; font-family:'Vazirmatn'; font-size:12.5px; margin-bottom:8px; cursor:pointer; }
+  .drawer-btn.danger{ color:var(--danger); border-color:var(--danger); }
+
+  main{ flex:1; padding:18px 16px 8px; display:flex; flex-direction:column; gap:2px; overflow-y:auto; }
+  .turn{ margin-bottom:18px; }
+  .turn-mark{ display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .wedge{ width:0; height:0; border-top:4px solid transparent; border-bottom:4px solid transparent; border-right:6px solid var(--accent-verdigris-dim); }
+  .turn-label{ font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--ink-faint); letter-spacing:0.5px; }
+  .player-line{ color:var(--accent-amber); font-size:13.5px; padding-right:14px; margin-bottom:8px; line-height:1.8; }
+  .player-line::before{ content:"« "; color:var(--ink-faint); }
+  .narrative{ font-family:'Vazirmatn', serif; font-size:15px; line-height:2; color:var(--ink-bone); padding-right:14px; border-right:2px solid var(--border-line); }
+  .loading{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-faint); padding-right:14px; animation:pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:0.4;} 50%{opacity:1;} }
+  .error-line{ color:var(--danger); font-size:13px; padding:10px 14px; border:1px solid var(--danger); border-radius:3px; background:rgba(168,92,74,0.08); }
+  .retry-btn{ margin-top:8px; background:none; border:1px solid var(--danger); color:var(--danger); padding:5px 12px; border-radius:3px; font-family:'Vazirmatn'; font-size:12px; cursor:pointer; }
+
+  .input-bar{ padding:10px 14px 16px; border-top:1px solid var(--border-line); background:var(--bg-panel); display:flex; gap:8px; position:sticky; bottom:0; }
+  textarea{ flex:1; resize:none; background:var(--bg-void); border:1px solid var(--border-line); border-radius:3px; color:var(--ink-bone); font-family:'Vazirmatn'; font-size:14px; padding:10px 12px; line-height:1.5; min-height:44px; max-height:110px; }
+  textarea:focus{ outline:none; border-color:var(--accent-verdigris-dim); }
+  textarea::placeholder{ color:var(--ink-faint); }
+  .send-btn{ background:var(--accent-verdigris-dim); color:var(--ink-bone); border:none; border-radius:3px; padding:0 18px; font-family:'Cinzel', serif; font-size:12px; letter-spacing:1px; cursor:pointer; transition:background 0.15s; }
+  .send-btn:hover:not(:disabled){ background:var(--accent-verdigris); }
+  .send-btn:disabled{ opacity:0.4; cursor:default; }
+
+  .start-screen{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 24px; text-align:center; gap:22px; }
+  .start-title{ font-family:'Cinzel', serif; font-size:22px; letter-spacing:2px; color:var(--accent-amber); text-transform:uppercase; }
+  .start-sub{ color:var(--ink-muted); font-size:14px; line-height:1.9; max-width:380px; }
+  .start-btn{ background:var(--accent-verdigris-dim); color:var(--ink-bone); border:1px solid var(--accent-verdigris); border-radius:3px; padding:12px 30px; font-family:'Cinzel', serif; font-size:13px; letter-spacing:1.5px; cursor:pointer; }
+  .start-btn:hover{ background:var(--accent-verdigris); }
+  .reset-link{ background:none; border:none; color:var(--ink-faint); font-family:'Vazirmatn'; font-size:11px; text-decoration:underline; cursor:pointer; margin-top:6px; }
+  .footer-note{ text-align:center; font-family:'IBM Plex Mono', monospace; font-size:9.5px; color:var(--ink-faint); padding:6px 0 2px; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="start-screen" id="startScreen">
+    <div class="start-title">عصر برنز<br>آینده‌ی گمشده</div>
+    <div class="start-sub">
+      یک روز، بدون هیچ دلیلی، خودت را در میان تمدنی از عصر برنز می‌یابی.
+      نه جادویی داری، نه سلاحی، نه تقدیری از پیش نوشته‌شده —
+      فقط ذهن و کنجکاوی امروزی‌ات.
+      دنیا منتظر تو نمی‌ماند، و داستان را کسی جز خودت نمی‌نویسد.
+    </div>
+    <button class="start-btn" id="beginBtn">آغاز زندگی</button>
+    <button class="reset-link" id="resumeBtn" style="display:none;">ادامه‌ی بازی ذخیره‌شده</button>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-title">وضعیت</div>
+    <div class="bar-row">
+      <div class="bar-label-row"><span>سلامتی</span><span id="dHealthNum">۱۰۰</span></div>
+      <div class="bar-track"><div class="bar-fill health" id="dHealthBar" style="width:100%"></div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label-row"><span>گرسنگی</span><span id="dHungerNum">۰</span></div>
+      <div class="bar-track"><div class="bar-fill hunger" id="dHungerBar" style="width:0%"></div></div>
+    </div>
+    <div class="bar-row">
+      <div class="bar-label-row"><span>انرژی</span><span id="dEnergyNum">۱۰۰</span></div>
+      <div class="bar-track"><div class="bar-fill energy" id="dEnergyBar" style="width:100%"></div></div>
+    </div>
+
+    <div class="drawer-title">زمان و مکان</div>
+    <div class="meta-line"><span>روز</span><span id="dDay">۱</span></div>
+    <div class="meta-line"><span>هنگام</span><span id="dTime">صبح</span></div>
+    <div class="meta-line"><span>مکان</span><span id="dLoc">—</span></div>
+
+    <div class="drawer-title">دنیا</div>
+    <div class="meta-line"><span>فصل</span><span id="dSeason">—</span></div>
+    <div class="meta-line"><span>آب‌وهوا</span><span id="dWeather">—</span></div>
+    <div class="bar-row" style="margin-top:8px;">
+      <div class="bar-label-row"><span>ذخیره‌ی غذای ده</span><span id="dFoodNum">۷۰</span></div>
+      <div class="bar-track"><div class="bar-fill food" id="dFoodBar" style="width:70%"></div></div>
+    </div>
+    <div id="dEvents"><div class="inv-empty">رویداد خاصی ثبت نشده</div></div>
+
+    <div class="drawer-title">دارایی و بازار</div>
+    <div class="meta-line"><span>شِکل نقره</span><span id="dGold">۱۲</span></div>
+    <div id="dPrices"></div>
+
+    <div class="drawer-title">کوله‌بار</div>
+    <ul class="inv-list" id="dInv"><li class="inv-empty">دست خالی</li></ul>
+
+    <div class="drawer-title">آدم‌هایی که می‌شناسی</div>
+    <div id="dNpcs"><div class="inv-empty">هنوز کسی را نشناخته‌ای</div></div>
+
+    <div class="drawer-title">خاطرات مهم</div>
+    <div id="dMemories"><div class="inv-empty">هنوز خاطره‌ی مهمی ثبت نشده</div></div>
+
+    <div class="drawer-title">بازی</div>
+    <div class="meta-line" style="border-bottom:none;"><span id="connBadge" style="font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--ink-muted);">⏳ در حال بررسی اتصال…</span></div>
+    <button class="drawer-btn" id="saveBtn" style="margin-top:8px;">ذخیره‌ی دستی</button>
+    <button class="drawer-btn danger" id="restartBtn">شروع دوباره (پاک کردن پیشرفت)</button>
+  </div>
+
+  <div id="gameScreen" style="display:none; flex-direction:column; flex:1; min-height:100vh;">
+    <header>
+      <button class="menu-btn" id="menuBtn">☰</button>
+      <div class="title">عصر برنز · آینده‌ی گمشده</div>
+      <div class="header-mini" id="miniStatus">روز ۱</div>
+    </header>
+    <main id="log"></main>
+    <div class="input-bar">
+      <textarea id="playerInput" placeholder="بنویس چه می‌کنی یا چه می‌گویی…" rows="1"></textarea>
+      <button class="send-btn" id="sendBtn">انجام بده</button>
+    </div>
+    <div class="footer-note">فاز ۴ — Player → World → NPC → Economy → Relationship → Gemini</div>
+  </div>
+
+</div>
+
+<script>
+/* ======================================================================
+   NPC ROSTER — static reference data
+   ====================================================================== */
+const NPC_ROSTER = {
+  "کوروش، ریش‌سفید ده": { role:"بزرگ و ریش‌سفید روستا", personality:"محتاط، باتجربه، کمی بدبین به غریبه‌ها ولی منصف", goal:"حفظ نظم، امنیت و آرامش روستا", startRelationship:45,
+    schedule:{ "صبح":"میدان مرکزی ده", "ظهر":"میدان مرکزی ده", "عصر":"خانه‌اش", "شب":"خانه‌اش" } },
+  "دایا": { role:"دختر یکی از کشاورزان", personality:"کنجکاو، گرم، پرحرف، به غریبه‌ها علاقه‌مند", goal:"کمک به خانواده در کار مزرعه و فرار از یکنواختی روستا", startRelationship:55,
+    schedule:{ "صبح":"مزرعه‌ی خانوادگی", "ظهر":"مزرعه‌ی خانوادگی", "عصر":"کنار رودخانه", "شب":"خانه‌شان" } },
+  "برنزگر": { role:"آهنگر و برنزکار ده", personality:"خشن در ظاهر، منصف در باطن، کم‌حرف", goal:"یافتن شاگردی قابل‌اعتماد برای کارگاهش", startRelationship:40,
+    schedule:{ "صبح":"کارگاه آهنگری", "ظهر":"کارگاه آهنگری", "عصر":"کارگاه آهنگری", "شب":"خانه‌اش" } },
+  "نیا": { role:"بیوه‌ی یک صیاد", personality:"مهربان، پرحرف، منبع خوب شایعات و اخبار ده", goal:"گذران زندگی و تامین غذای خانواده‌اش", startRelationship:50,
+    schedule:{ "صبح":"اسکله‌ی رودخانه", "ظهر":"خانه‌اش", "عصر":"میدان مرکزی ده", "شب":"خانه‌اش" } },
+  "توروس": { role:"نگهبان دروازه‌ی ده", personality:"سختگیر، مشکوک به هرکس، وظیفه‌شناس", goal:"جلوگیری از ورود افراد خطرناک یا غریبه‌های ناشناس", startRelationship:30,
+    schedule:{ "صبح":"دروازه‌ی ده", "ظهر":"دروازه‌ی ده", "عصر":"دروازه‌ی ده", "شب":"نزدیک دروازه، کمتر هوشیار" } }
+};
+
+/* ======================================================================
+   WORLD ENGINE — season, weather, village food stock, ambient events.
+   Runs first: everything downstream reads its output.
+   ====================================================================== */
+const WorldEngine = {
+  weatherPool: {
+    "بهار":["آفتابی و ملایم","بارانی سبک","ابری و خنک"],
+    "تابستان":["گرم و آفتابی","خشک و داغ","کمی ابری"],
+    "پاییز":["بادی","ابری با برگ‌ریزان","بارانی سرد"],
+    "زمستان":["سرد و ابری","برفی سبک","یخبندان و صاف"]
+  },
+  ambientEvents: [
+    "شایعه‌ای درباره‌ی راهزنان در جاده‌ی شمالی بین اهالی پیچید.",
+    "کاروانی کوچک از شهرهای همسایه برای تجارت وارد ده شد.",
+    "بیماری خفیفی میان دام‌های ده شیوع یافت.",
+    "باران سیل‌آسا مسیر بخشی از رودخانه را تغییر داد.",
+    "جشن کوچکی به‌مناسبت پایان فصل برداشت برگزار شد.",
+    "گروهی از شکارچیان ده خبر از حیوانی بزرگ در جنگل آوردند.",
+    "چاه اصلی ده برای چند روز کم‌آب شد.",
+    "زائرانی برای مراسمی مذهبی از راه دور به ده رسیدند."
+  ],
+  seasonForDay(day){
+    const pos = (day-1) % 120;
+    if(pos<30) return "بهار";
+    if(pos<60) return "تابستان";
+    if(pos<90) return "پاییز";
+    return "زمستان";
+  },
+  pickWeather(season){ const pool=this.weatherPool[season]; return pool[Math.floor(Math.random()*pool.length)]; },
+  init(day){ const season=this.seasonForDay(day); return { season, weather:this.pickWeather(season), villageFoodStock:70, events:[] }; },
+  advanceOneDay(world, newDay){
+    world.season = this.seasonForDay(newDay);
+    world.weather = this.pickWeather(world.season);
+    const drift = Math.floor(Math.random()*3)+1;
+    world.villageFoodStock = Math.max(0, Math.min(100, world.villageFoodStock - drift));
+    if(Math.random() < 0.2){
+      const ev = this.ambientEvents[Math.floor(Math.random()*this.ambientEvents.length)];
+      world.events.push({day:newDay, text:ev});
+      if(world.events.length>15) world.events.shift();
+    }
+  },
+  applyAIUpdates(world, updates, day){
+    if(!updates) return;
+    if(typeof updates.foodStockDelta === 'number') world.villageFoodStock = Math.max(0, Math.min(100, world.villageFoodStock + updates.foodStockDelta));
+    if(updates.weather) world.weather = updates.weather;
+    if(updates.newWorldEvent){ world.events.push({day, text:updates.newWorldEvent}); if(world.events.length>15) world.events.shift(); }
+  },
+  contextFor(world){
+    const recent = world.events.slice(-4).map(e=>`(روز ${e.day}) ${e.text}`).join(' | ') || 'رویداد خاصی ثبت نشده';
+    return `فصل: ${world.season} | آب‌وهوا: ${world.weather} | ذخیره‌ی غذای ده: ${world.villageFoodStock}/100 | رویدادهای اخیر دنیا: ${recent}`;
+  }
+};
+
+/* ======================================================================
+   NPC ENGINE — pure context provider, no AI feedback loop.
+   Decides who is plausibly where, based on daily routines and the
+   current time of day. Feeds Economy & Relationship engines downstream.
+   ====================================================================== */
+const NpcEngine = {
+  presence(timeOfDay){
+    return Object.entries(NPC_ROSTER).map(([name,d]) => `${name} احتمالاً در «${d.schedule[timeOfDay]}» است`);
+  },
+  contextFor(timeOfDay){
+    return `برنامه‌ی روزمره‌ی معمول شخصیت‌ها در این هنگام از روز (فقط راهنما، نه قطعیت — اگر منطق صحنه چیز دیگری ایجاب می‌کند نادیده بگیر):\n` +
+      this.presence(timeOfDay).map(s=>`- ${s}`).join('\n');
+  }
+};
+
+/* ======================================================================
+   ECONOMY ENGINE — player currency (silver shekels) and local prices.
+   Prices react to World Engine's food stock (scarcity raises food prices),
+   demonstrating the pipeline: World → NPC → Economy.
+   ====================================================================== */
+const EconomyEngine = {
+  basePrices: {
+    "یک وعده نان و پنیر": 1,
+    "گوشت پخته": 3,
+    "اسکان یک‌شب زیر سقفی امن": 2,
+    "پارچه‌ی ساده": 4,
+    "ابزار برنزی ساده": 8,
+    "دارو یا مرهم گیاهی": 5
+  },
+  init(){ return { gold: 12 }; },
+  currentPrices(world){
+    const foodItems = new Set(["یک وعده نان و پنیر","گوشت پخته"]);
+    const prices = {};
+    Object.entries(this.basePrices).forEach(([item, base]) => {
+      let p = base;
+      if(foodItems.has(item)){
+        if(world.villageFoodStock < 30) p = base + 1;
+        else if(world.villageFoodStock > 85) p = Math.max(1, base - 1);
+      }
+      prices[item] = p;
+    });
+    return prices;
+  },
+  applyAIUpdates(economy, updates){
+    if(!updates) return;
+    if(typeof updates.goldDelta === 'number'){
+      economy.gold = Math.max(0, economy.gold + updates.goldDelta);
+    }
+  },
+  contextFor(economy, world){
+    const prices = this.currentPrices(world);
+    const priceList = Object.entries(prices).map(([item,p]) => `${item}: ${p} شکل`).join(' | ');
+    return `پول همراه بازیکن: ${economy.gold} شکل نقره. قیمت‌های رایج بازار ده (بر اثر ذخیره‌ی غذا نوسان دارد): ${priceList}`;
+  }
+};
+
+/* ======================================================================
+   RELATIONSHIP ENGINE — relationship scores + bounded memory logs per NPC.
+   This is the layer that actually receives structured feedback from Claude.
+   ====================================================================== */
+const RelationshipEngine = {
+  NPC_LOG_CAP: 4,
+  initNpcs(){
+    const npcs = {};
+    Object.entries(NPC_ROSTER).forEach(([name,d]) => { npcs[name] = { role:d.role, relationship:d.startRelationship, memoryLog:[], met:false }; });
+    return npcs;
+  },
+  addNote(npc, day, note){
+    if(!note) return;
+    npc.memoryLog.push({day, text:note});
+    if(npc.memoryLog.length > this.NPC_LOG_CAP) npc.memoryLog.shift();
+  },
+  applyAIUpdates(npcs, npc_updates, day){
+    if(!npc_updates || typeof npc_updates !== 'object') return;
+    Object.entries(npc_updates).forEach(([name, upd]) => {
+      if(!npcs[name]) npcs[name] = { role: NPC_ROSTER[name] ? NPC_ROSTER[name].role : 'آشنای تازه', relationship:50, memoryLog:[], met:false };
+      const npc = npcs[name];
+      if(typeof upd.relationship === 'number') npc.relationship = Math.max(0, Math.min(100, upd.relationship));
+      if(upd.met === true) npc.met = true;
+      this.addNote(npc, day, upd.note);
+    });
+  },
+  contextFor(npcs){
+    const entries = Object.entries(npcs).filter(([,n]) => n.met).map(([name,n]) => {
+      const lastNote = n.memoryLog.length ? n.memoryLog[n.memoryLog.length-1].text : 'هنوز خاطره‌ای ثبت نشده';
+      return `- ${name}: رابطه ${n.relationship}/100. آخرین برداشت: ${lastNote}`;
+    });
+    return entries.join('\n') || 'هنوز شخصیت شناخته‌شده‌ای نیست.';
+  }
+};
+
+/* ======================================================================
+   MEMORY ENGINE — recent rolling log + pruned long-term key memories.
+   ====================================================================== */
+const MemoryEngine = {
+  RECENT_CAP: 8, KEY_CAP: 40,
+  init(){ return { recentLog:[], keyMemories:[] }; },
+  addRecent(memory, day, timeOfDay, narrativeText){
+    const summary = narrativeText.length>140 ? narrativeText.slice(0,140)+'…' : narrativeText;
+    memory.recentLog.push({day, timeOfDay, summary});
+    if(memory.recentLog.length > this.RECENT_CAP) memory.recentLog.shift();
+  },
+  addKeyMemories(memory, newMemories, day){
+    (newMemories||[]).forEach(m=>{ if(m && m.text) memory.keyMemories.push({ day, text:m.text, importance: typeof m.importance==='number' ? Math.max(1,Math.min(5,m.importance)) : 3 }); });
+    this.prune(memory, day);
+  },
+  prune(memory, currentDay){
+    if(memory.keyMemories.length <= this.KEY_CAP) return;
+    memory.keyMemories.sort((a,b)=> (b.importance*100 - (currentDay-b.day)) - (a.importance*100 - (currentDay-a.day)));
+    memory.keyMemories = memory.keyMemories.slice(0, this.KEY_CAP);
+  },
+  contextFor(memory){
+    const recent = memory.recentLog.map(r=>`(روز ${r.day}، ${r.timeOfDay}) ${r.summary}`).join('\n') || 'رویداد اخیری ثبت نشده';
+    const top = [...memory.keyMemories].sort((a,b)=>b.importance-a.importance).slice(0,10).map(m=>`- (اهمیت ${m.importance}/۵، روز ${m.day}) ${m.text}`).join('\n') || 'خاطره‌ی مهمی ثبت نشده';
+    return `رویدادهای اخیر (کوتاه‌مدت):\n${recent}\n\nخاطرات مهم (بلندمدت):\n${top}`;
+  }
+};
+
+/* ======================================================================
+   GAME ENGINE — orchestrates the pipeline:
+   Player → World → NPC → Economy → Relationship → Claude → narrative
+   ====================================================================== */
+const GameEngine = {
+  rosterBriefing(){
+    return Object.entries(NPC_ROSTER).map(([name,d]) => `- ${name} (${d.role}): شخصیت: ${d.personality}. هدف: ${d.goal}.`).join('\n');
+  },
+
+  buildSystemPrompt(state){
+    // Pipeline: gather each engine's context in order before composing the final prompt.
+    const worldCtx = WorldEngine.contextFor(state.world);
+    const npcCtx = NpcEngine.contextFor(state.timeOfDay);
+    const economyCtx = EconomyEngine.contextFor(state.economy, state.world);
+    const relationshipCtx = RelationshipEngine.contextFor(state.npcs);
+    const memoryCtx = MemoryEngine.contextFor(state.memory);
+
+    return `You are the AI Game Master of "Bronze Age: The Lost Future", a text-based historical life-simulation. You are not a narrator or author writing a plot — you simulate a believable, indifferent Bronze Age world that the player is merely living inside.
+
+Hard rules:
+1. Never offer dialogue options or lists of choices. The player writes freely in natural language; you interpret their intent.
+2. Reality before gameplay. If realism and convenience conflict, realism wins. No magic, no anachronistic technology, no plot armor.
+3. The world does not revolve around the player. NPCs pursue their own goals and only know what they could plausibly know. Nothing is instantaneous.
+4. Every action, including inaction, has a believable consequence. Never protect or unfairly punish the player, never invent convenient coincidences.
+5. The player is an ordinary modern-minded person displaced into the Bronze Age with no special powers, weapons, or knowledge beyond ordinary modern reasoning and curiosity.
+6. Write only immersive, sensory narrative — what the player would see, hear, feel. No game jargon, no meta commentary.
+7. Write ONLY in Persian (Farsi). Keep each reply to 2-4 short paragraphs, mobile-screen length.
+
+REALISTIC NEEDS PACING:
+- Hunger rises slowly (~3-4 points/hour without eating; severe only after ~20-24h). A full meal reduces hunger by 40-60 points.
+- Energy drains gradually (~4-6 points/hour of activity) and is mostly restored by a full night's sleep.
+- Health only drops from real causes (injury, illness, exhaustion, starvation).
+
+ESTABLISHED CHARACTERS (stay consistent; you may invent minor unnamed background characters freely):
+${this.rosterBriefing()}
+
+[1] WORLD ENGINE CONTEXT (things that exist independent of the player):
+${worldCtx}
+
+[2] NPC ENGINE CONTEXT (likely whereabouts right now):
+${npcCtx}
+
+[3] ECONOMY ENGINE CONTEXT (currency & prices — bronze-age silver shekels):
+${economyCtx}
+
+[4] RELATIONSHIP ENGINE CONTEXT (current standing with known characters):
+${relationshipCtx}
+
+MEMORY (ground truth of what has actually happened — never contradict this):
+${memoryCtx}
+
+TRANSACTION RULES: if the player buys, sells, is paid for labor, is robbed, or otherwise gains/loses money, reflect it realistically using the current prices above via economy_updates.goldDelta. The player cannot spend more shekels than they have — if they try, have the world react accordingly (a merchant refuses, etc.) rather than allowing negative gold.
+
+RELATIONSHIP & MEMORY RULES:
+- Relationship scores move gradually (typically 2-8 points per meaningful interaction), never huge jumps.
+- Only include a character in npc_updates if they were actually present or affected this turn. First meeting → "met": true.
+- memory_updates.newMemories: only for genuinely significant events (0 typical, occasionally 1, rarely 2). importance 1=minor, 5=critical.
+
+End your reply with a line containing ONLY a JSON object wrapped exactly as: <state>{...}</state>
+The JSON must include:
+- "day": integer, "timeOfDay": one of "صبح","ظهر","عصر","شب", "location": short Persian string
+- "health": integer 0-100, "hunger": integer 0-100, "energy": integer 0-100
+- "inventory": array of short Persian item strings (FULL current list)
+- "npc_updates": object, ONLY for characters relevant this turn: { "ExactName": {"relationship": int, "note": "short Persian sentence", "met": true} }
+- "world_updates": object, optional fields only when relevant: { "foodStockDelta": int, "weather": "string", "newWorldEvent": "short Persian sentence" }
+- "economy_updates": object, optional: { "goldDelta": int }
+- "memory_updates": { "newMemories": [ {"text": "short Persian sentence", "importance": 1-5} ] }
+Do not add any text after the <state> tag.
+
+CURRENT PLAYER STATE:
+${JSON.stringify({day:state.day, timeOfDay:state.timeOfDay, location:state.location, health:state.health, hunger:state.hunger, energy:state.energy, inventory:state.inventory})}
+`;
+  },
+
+  defaultState(){
+    return {
+      day:1, timeOfDay:"صبح", location:"نامعلوم",
+      health:100, hunger:5, energy:100, inventory:[],
+      npcs: RelationshipEngine.initNpcs(),
+      world: WorldEngine.init(1),
+      economy: EconomyEngine.init(),
+      memory: MemoryEngine.init()
+    };
+  },
+
+  migrateLoaded(state){
+    if(typeof state.energy !== 'number') state.energy = 100;
+    if(!state.world) state.world = WorldEngine.init(state.day || 1);
+    if(!state.economy) state.economy = EconomyEngine.init();
+    if(!state.memory) state.memory = MemoryEngine.init();
+    if(!state.npcs) state.npcs = RelationshipEngine.initNpcs();
+    Object.values(state.npcs).forEach(n => { if(!Array.isArray(n.memoryLog)) n.memoryLog = n.memory ? [{day:state.day||1, text:n.memory}] : []; });
+    return state;
+  },
+
+  async callAI(state, userText, isOpening){
+    const systemPrompt = this.buildSystemPrompt(state);
+    const userMessage = isOpening
+      ? "[شروع بازی] صحنه‌ی آغاز را توصیف کن: بامدادی که ناگهان خود را در دنیای عصر برنز، در نزدیکی یک روستای کوچک کنار رودخانه، غریبه و گیج می‌یابی. یکی از اهالی ده که منطقی است اولین برخورد باشد را وارد صحنه کن."
+      : userText;
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:1300, system: systemPrompt, messages:[{ role:"user", content:userMessage }] })
+    });
+    if(!response.ok) throw new Error('API error ' + response.status);
+    const data = await response.json();
+    return (data.content || []).map(b => b.type==='text' ? b.text : '').join('\n');
+  },
+
+  extractState(rawText){
+    const match = rawText.match(/<state>([\s\S]*?)<\/state>/);
+    let narrative = rawText, parsed = null;
+    if(match){
+      narrative = rawText.slice(0, match.index).trim();
+      try{ parsed = JSON.parse(match[1]); }catch(e){ console.error('state parse error', e); }
+    }
+    return { narrative, parsed };
+  },
+
+  // Apply Claude's structured response back through each engine, same order as context-building.
+  applyTurn(state, parsed, narrative){
+    const prevDay = state.day;
+
+    if(parsed){
+      state.day = parsed.day ?? state.day;
+      state.timeOfDay = parsed.timeOfDay ?? state.timeOfDay;
+      state.location = parsed.location ?? state.location;
+      state.health = typeof parsed.health === 'number' ? parsed.health : state.health;
+      state.hunger = typeof parsed.hunger === 'number' ? parsed.hunger : state.hunger;
+      state.energy = typeof parsed.energy === 'number' ? parsed.energy : state.energy;
+      state.inventory = Array.isArray(parsed.inventory) ? parsed.inventory : state.inventory;
+    }
+
+    // [1] World Engine: advance for each elapsed in-story day, then layer explicit updates.
+    let dayDiff = Math.min(Math.max(state.day - prevDay, 0), 3);
+    for(let i=0;i<dayDiff;i++) WorldEngine.advanceOneDay(state.world, prevDay + i + 1);
+    if(parsed) WorldEngine.applyAIUpdates(state.world, parsed.world_updates, state.day);
+
+    // [2] NPC Engine has no mutable state — it's a pure schedule lookup, nothing to apply.
+
+    // [3] Economy Engine: apply gold changes.
+    if(parsed) EconomyEngine.applyAIUpdates(state.economy, parsed.economy_updates);
+
+    // [4] Relationship Engine: apply relationship/memory-note changes.
+    if(parsed) RelationshipEngine.applyAIUpdates(state.npcs, parsed.npc_updates, state.day);
+
+    // Memory Engine: always log a rolling summary, plus any AI-flagged key memories.
+    MemoryEngine.addRecent(state.memory, state.day, state.timeOfDay, narrative || '');
+    if(parsed && parsed.memory_updates) MemoryEngine.addKeyMemories(state.memory, parsed.memory_updates.newMemories, state.day);
+
+    return state;
+  }
+};
+
+/* ======================================================================
+   GEMINI ENGINE — separate, independent AI-calling module using Google's
+   free-tier Gemini API. Does not touch or depend on GameEngine.callAI
+   (which still holds the original Claude-calling code, kept intact and
+   unused for now — swap back any time by changing the one call site
+   in submitTurn()).
+   ====================================================================== */
+const GEMINI_API_KEY = 'AQ.Ab8RN6KokjWG1EARPxM6bNl5_H95iw59rsBmCSlCwhcp-yOHHg';
+const GEMINI_MODEL = 'gemini-2.5-flash';
+
+const GeminiEngine = {
+  async callAI(state, userText, isOpening){
+    const systemPrompt = GameEngine.buildSystemPrompt(state); // reuse the same pipeline-built prompt
+    const userMessage = isOpening
+      ? "[شروع بازی] صحنه‌ی آغاز را توصیف کن: بامدادی که ناگهان خود را در دنیای عصر برنز، در نزدیکی یک روستای کوچک کنار رودخانه، غریبه و گیج می‌یابی. یکی از اهالی ده که منطقی است اولین برخورد باشد را وارد صحنه کن."
+      : userText;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+          generationConfig: { maxOutputTokens: 1300 }
+        })
+      }
+    );
+
+    if(!response.ok){
+      const errText = await response.text().catch(()=>'');
+      throw new Error(`Gemini API error ${response.status}: ${errText.slice(0,200)}`);
+    }
+    const data = await response.json();
+    const candidate = data.candidates && data.candidates[0];
+    if(!candidate || !candidate.content || !candidate.content.parts){
+      throw new Error('Gemini returned no usable content (possibly safety-blocked): ' + JSON.stringify(data).slice(0,200));
+    }
+    return candidate.content.parts.map(p => p.text || '').join('\n');
+  }
+};
+
+/* ======================================================================
+   BACKEND — Supabase (Postgres), with local window.storage fallback.
+   ====================================================================== */
+const STORAGE_KEY = 'bronze-age-save-v3';
+const SUPABASE_URL = 'https://udumzhdwgcnbuhuzghwq.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVkdW16aGR3Z2NuYnVodXpnaHdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM2Njg5ODEsImV4cCI6MjA5OTI0NDk4MX0.mu8mM1-WDYyo1Jp0XU02gnWeTZY2GULDH9Byu6OMX3s';
+const SAVE_ID = 'default-save';
+let backendOnline = null;
+let lastBackendError = null;
+
+let gameState = null;
+let chatDisplay = [];
+let busy = false;
+
+function toFaDigits(n){
+  const fa = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+  return String(n).replace(/[0-9]/g, d => fa[d]);
+}
+
+function updateConnectionBadge(){
+  const el = document.getElementById('connBadge');
+  if(!el) return;
+  if(backendOnline === true){
+    el.innerHTML = '🟢 ذخیره روی سرور Supabase';
+  } else if(backendOnline === false){
+    el.innerHTML = '🟡 حالت آفلاین (ذخیره‌ی محلی مرورگر)' +
+      (lastBackendError ? `<br><span style="color:var(--danger); font-size:9px; word-break:break-word;">جزئیات خطا: ${lastBackendError}</span>` : '');
+  } else {
+    el.textContent = '⏳ در حال بررسی اتصال…';
+  }
+}
+
+async function saveGame(){
+  try{ await window.storage.set(STORAGE_KEY, JSON.stringify({gameState, chatDisplay}), false); }
+  catch(e){ console.error('local save failed', e); }
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/game_saves?on_conflict=id`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({ id: SAVE_ID, state: gameState, chat: chatDisplay, updated_at: new Date().toISOString() })
+    });
+    if(!res.ok){
+      const errText = await res.text().catch(()=>'');
+      throw new Error(`HTTP ${res.status} — ${errText.slice(0,180)}`);
+    }
+    backendOnline = true;
+    lastBackendError = null;
+  }catch(e){
+    console.error('supabase save failed, using local fallback', e);
+    backendOnline = false;
+    lastBackendError = e.message || String(e);
+  }
+  updateConnectionBadge();
+}
+
+async function loadGame(){
+  try{
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/game_saves?id=eq.${SAVE_ID}&select=state,chat`, {
+      headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` }
+    });
+    if(!res.ok){
+      const errText = await res.text().catch(()=>'');
+      throw new Error(`HTTP ${res.status} — ${errText.slice(0,180)}`);
+    }
+    const rows = await res.json();
+    backendOnline = true; lastBackendError = null; updateConnectionBadge();
+    if(rows && rows.length) return { gameState: rows[0].state, chatDisplay: rows[0].chat };
+  }catch(e){
+    console.error('supabase load failed, trying local fallback', e);
+    backendOnline = false;
+    lastBackendError = e.message || String(e);
+    updateConnectionBadge();
+  }
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value) return JSON.parse(res.value);
+  }catch(e){ /* no save anywhere yet */ }
+  return null;
+}
+
+async function deleteRemoteSave(){
+  try{ await fetch(`${SUPABASE_URL}/rest/v1/game_saves?id=eq.${SAVE_ID}`, { method:'DELETE', headers:{ 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }); }
+  catch(e){ console.error('remote delete failed', e); }
+}
+
+/* ======================================================================
+   UI LAYER
+   ====================================================================== */
+function renderStatus(){
+  document.getElementById('miniStatus').textContent = `روز ${toFaDigits(gameState.day)} · ${gameState.timeOfDay}`;
+
+  document.getElementById('dHealthNum').textContent = toFaDigits(gameState.health);
+  document.getElementById('dHealthBar').style.width = gameState.health + '%';
+  document.getElementById('dHealthBar').className = 'bar-fill health' + (gameState.health<=30 ? ' warn':'');
+
+  document.getElementById('dHungerNum').textContent = toFaDigits(gameState.hunger);
+  document.getElementById('dHungerBar').style.width = gameState.hunger + '%';
+  document.getElementById('dHungerBar').className = 'bar-fill hunger' + (gameState.hunger>=70 ? ' warn':'');
+
+  document.getElementById('dEnergyNum').textContent = toFaDigits(gameState.energy);
+  document.getElementById('dEnergyBar').style.width = gameState.energy + '%';
+  document.getElementById('dEnergyBar').className = 'bar-fill energy' + (gameState.energy<=25 ? ' warn':'');
+
+  document.getElementById('dDay').textContent = toFaDigits(gameState.day);
+  document.getElementById('dTime').textContent = gameState.timeOfDay;
+  document.getElementById('dLoc').textContent = gameState.location;
+
+  document.getElementById('dSeason').textContent = gameState.world.season;
+  document.getElementById('dWeather').textContent = gameState.world.weather;
+  document.getElementById('dFoodNum').textContent = toFaDigits(gameState.world.villageFoodStock);
+  document.getElementById('dFoodBar').style.width = gameState.world.villageFoodStock + '%';
+
+  const evEl = document.getElementById('dEvents');
+  evEl.innerHTML = '';
+  const recentEvents = gameState.world.events.slice(-4).reverse();
+  if(recentEvents.length){
+    recentEvents.forEach(e => { const d=document.createElement('div'); d.className='event-item'; d.innerHTML=`<span class="event-day">روز ${toFaDigits(e.day)}</span> — ${e.text}`; evEl.appendChild(d); });
+  } else { evEl.innerHTML = '<div class="inv-empty">رویداد خاصی ثبت نشده</div>'; }
+
+  document.getElementById('dGold').textContent = toFaDigits(gameState.economy.gold);
+  const pricesEl = document.getElementById('dPrices');
+  pricesEl.innerHTML = '';
+  const prices = EconomyEngine.currentPrices(gameState.world);
+  Object.entries(prices).forEach(([item,p]) => {
+    const row = document.createElement('div');
+    row.className = 'price-row';
+    row.innerHTML = `<span>${item}</span><span>${toFaDigits(p)} شکل</span>`;
+    pricesEl.appendChild(row);
+  });
+
+  const invEl = document.getElementById('dInv');
+  invEl.innerHTML = '';
+  if(gameState.inventory && gameState.inventory.length){
+    gameState.inventory.forEach(item => { const li=document.createElement('li'); li.textContent=item; invEl.appendChild(li); });
+  } else { invEl.innerHTML = '<li class="inv-empty">دست خالی</li>'; }
+
+  const npcEl = document.getElementById('dNpcs');
+  npcEl.innerHTML = '';
+  const metNames = Object.keys(gameState.npcs).filter(n => gameState.npcs[n].met);
+  if(metNames.length){
+    metNames.forEach(name => {
+      const n = gameState.npcs[name];
+      const lastNote = n.memoryLog.length ? n.memoryLog[n.memoryLog.length-1].text : '';
+      const card = document.createElement('div');
+      card.className = 'npc-card';
+      card.innerHTML = `<div class="npc-head"><span class="npc-name">${name}</span><span class="npc-role">${n.role||''}</span></div><div class="bar-track"><div class="bar-fill relationship" style="width:${n.relationship}%"></div></div><div class="npc-note">${lastNote}</div>`;
+      npcEl.appendChild(card);
+    });
+  } else { npcEl.innerHTML = '<div class="inv-empty">هنوز کسی را نشناخته‌ای</div>'; }
+
+  const memEl = document.getElementById('dMemories');
+  memEl.innerHTML = '';
+  const topMemories = [...gameState.memory.keyMemories].sort((a,b)=>b.importance-a.importance).slice(0,12);
+  if(topMemories.length){
+    topMemories.forEach(m => {
+      const dots = '●'.repeat(m.importance) + '○'.repeat(5-m.importance);
+      const d = document.createElement('div'); d.className='mem-item';
+      d.innerHTML = `<div class="mem-dots">${dots} · روز ${toFaDigits(m.day)}</div><div class="mem-text">${m.text}</div>`;
+      memEl.appendChild(d);
+    });
+  } else { memEl.innerHTML = '<div class="inv-empty">هنوز خاطره‌ی مهمی ثبت نشده</div>'; }
+}
+
+function renderLog(){
+  const log = document.getElementById('log');
+  log.innerHTML = '';
+  chatDisplay.forEach(entry => {
+    if(entry.role === 'player'){
+      const div = document.createElement('div'); div.className='player-line'; div.textContent = entry.text; log.appendChild(div);
+    } else {
+      const wrap = document.createElement('div'); wrap.className='turn';
+      const mark = document.createElement('div'); mark.className='turn-mark';
+      mark.innerHTML = `<div class="wedge"></div><div class="turn-label">روز ${toFaDigits(gameState.day)} · ${gameState.timeOfDay}</div>`;
+      const p = document.createElement('div'); p.className='narrative'; p.textContent = entry.text;
+      wrap.appendChild(mark); wrap.appendChild(p); log.appendChild(wrap);
+    }
+  });
+  log.scrollTop = log.scrollHeight;
+}
+
+function showLoading(){
+  const log = document.getElementById('log');
+  const d = document.createElement('div'); d.className='loading'; d.id='loadingLine'; d.textContent='دنیا در حال واکنش است…';
+  log.appendChild(d); log.scrollTop = log.scrollHeight;
+}
+function hideLoading(){ const el = document.getElementById('loadingLine'); if(el) el.remove(); }
+function showError(onRetry){
+  const log = document.getElementById('log');
+  const d = document.createElement('div'); d.className='error-line';
+  d.innerHTML = 'خطایی در ارتباط با شبیه‌سازی پیش آمد. اتصال را بررسی کن و دوباره تلاش کن.<br>';
+  const btn = document.createElement('button'); btn.className='retry-btn'; btn.textContent='تلاش دوباره'; btn.onclick = onRetry;
+  d.appendChild(btn); log.appendChild(d); log.scrollTop = log.scrollHeight;
+}
+
+async function submitTurn(userText, isOpening){
+  if(busy) return;
+  busy = true;
+  document.getElementById('sendBtn').disabled = true;
+  if(!isOpening){ chatDisplay.push({role:'player', text:userText}); renderLog(); }
+  showLoading();
+  try{
+    const raw = await GeminiEngine.callAI(gameState, userText, isOpening);
+    hideLoading();
+    const { narrative, parsed } = GameEngine.extractState(raw);
+    GameEngine.applyTurn(gameState, parsed, narrative);
+    chatDisplay.push({role:'narrative', text: narrative || '(پاسخی دریافت نشد)'});
+    renderStatus(); renderLog();
+    await saveGame();
+  }catch(e){
+    hideLoading();
+    showError(() => submitTurn(userText, isOpening));
+  }finally{
+    busy = false;
+    document.getElementById('sendBtn').disabled = false;
+  }
+}
+
+function openDrawer(){ document.getElementById('drawer').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+function closeDrawer(){ document.getElementById('drawer').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+
+function startNewGame(){
+  gameState = GameEngine.defaultState();
+  chatDisplay = [];
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'flex';
+  renderStatus(); renderLog();
+  submitTurn(null, true);
+}
+
+async function init(){
+  const saved = await loadGame();
+  if(saved && saved.gameState){
+    document.getElementById('resumeBtn').style.display = 'inline-block';
+    document.getElementById('resumeBtn').onclick = () => {
+      gameState = GameEngine.migrateLoaded(saved.gameState);
+      chatDisplay = saved.chatDisplay || [];
+      document.getElementById('startScreen').style.display = 'none';
+      document.getElementById('gameScreen').style.display = 'flex';
+      renderStatus(); renderLog();
+    };
+  }
+  document.getElementById('beginBtn').onclick = startNewGame;
+  document.getElementById('menuBtn').onclick = openDrawer;
+  document.getElementById('overlay').onclick = closeDrawer;
+  document.getElementById('saveBtn').onclick = async () => { await saveGame(); closeDrawer(); };
+  document.getElementById('restartBtn').onclick = async () => {
+    try{ await window.storage.delete(STORAGE_KEY, false); }catch(e){}
+    await deleteRemoteSave();
+    location.reload();
+  };
+  document.getElementById('sendBtn').onclick = () => {
+    const ta = document.getElementById('playerInput');
+    const val = ta.value.trim();
+    if(!val || busy) return;
+    ta.value=''; ta.style.height='auto';
+    submitTurn(val, false);
+  };
+  const ta = document.getElementById('playerInput');
+  ta.addEventListener('input', () => { ta.style.height='auto'; ta.style.height = Math.min(ta.scrollHeight, 110) + 'px'; });
+  ta.addEventListener('keydown', (e) => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); document.getElementById('sendBtn').click(); } });
+}
+
+init();
+</script>
+</body>
+                                                              </html>
